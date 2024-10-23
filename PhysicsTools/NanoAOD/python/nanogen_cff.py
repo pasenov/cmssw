@@ -111,21 +111,13 @@ def customizeNanoGEN(process):
     process.load("RecoJets.JetProducers.ak8GenJets_cfi")
     process.ak8GenJetsNoNuConstituents =  process.ak8GenJetsConstituents.clone(src='ak8GenJetsNoNu')
     process.ak8GenJetsNoNuSoftDrop = process.ak8GenJetsSoftDrop.clone(src=cms.InputTag('ak8GenJetsNoNuConstituents', 'constituents'))
-
-    # Define charged particles selector with pt > 0.3 GeV
-    process.genParticlesForJetsCharged = cms.EDFilter("CandPtrSelector", src = cms.InputTag("genParticles"), cut = cms.string("charge != 0 && pt > 0.3"))
-    # Create GenJetAK4 with charged particles only
-    process.ak4GenJetsChargedOnly = ak4GenJets.clone(src = cms.InputTag("genParticlesForJetsCharged"), rParam = cms.double(0.4), jetAlgorithm=cms.string("AntiKt"), doAreaFastjet = False, jetPtMin=1)  # AK4 radius and algorithm parameters
-
-
     process.genSubJetAK8Table.src = "ak8GenJetsNoNuSoftDrop"
     process.nanogenSequence.insert(0, process.ak8GenJetsNoNuSoftDrop)
     process.nanogenSequence.insert(0, process.ak8GenJetsNoNuConstituents)
-
+    process.genParticlesForJetsCharged = cms.EDFilter("CandPtrSelector", src = cms.InputTag("genParticles"), cut = cms.string("charge != 0 && pt > 0.3"))
+    process.ak4GenJetsChargedOnly = ak4GenJets.clone(src = cms.InputTag("genParticlesForJetsCharged"), rParam = cms.double(0.4), jetAlgorithm=cms.string("AntiKt"), doAreaFastjet = False, jetPtMin=1)  # AK4 radius and algorithm parameters
     process.nanogenSequence.insert(0, process.ak4GenJetsChargedOnly)
     process.nanogenSequence.insert(0, process.genParticlesForJetsCharged)
-
-
     # In case customizeNanoGENFromMini has already been called
     process.nanogenSequence.remove(process.genParticles2HepMCHiggsVtx)
     process.nanogenSequence.remove(process.genParticles2HepMC)
@@ -192,4 +184,3 @@ def setLHEFullPrecision(process):
 def setGenWeightsFullPrecision(process):
     process.genWeightsTable.lheWeightPrecision = 23
     return process
-
