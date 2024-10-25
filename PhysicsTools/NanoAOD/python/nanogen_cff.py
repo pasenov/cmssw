@@ -10,15 +10,6 @@ from PhysicsTools.NanoAOD.common_cff import Var,CandVars
 
 from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
 
-# Define output table for charged-only GenJets
-from PhysicsTools.NanoAOD.jetMC_cff import genJetTable
-trackGenJetAK4Table = genJetTable.clone()
-trackGenJetAK4Table.src = cms.InputTag("ak4GenJetsChargedOnly")
-trackGenJetAK4Table.variables = genJetTable.variables  # Copy existing variables
-
-# Customize output name
-trackGenJetAK4Table.name = cms.string("trackGenJetAK4")  # Output name
-
 nanoMetadata = cms.EDProducer("UniqueStringProducer",
     strings = cms.PSet(
         tag = cms.string("untagged"),
@@ -47,9 +38,19 @@ nanogenSequence = cms.Sequence(
     rivetProducerHTXS+
     cms.Sequence(particleLevelTablesTask)+
     metMCTable+
-    genWeightsTable+
-    trackGenJetAK4Table
+    genWeightsTable
 )
+
+# Define output table for charged-only GenJets
+from PhysicsTools.NanoAOD.jetMC_cff import genJetTable
+trackGenJetAK4Table = genJetTable.clone()
+trackGenJetAK4Table.src = cms.InputTag("ak4GenJetsChargedOnly")
+trackGenJetAK4Table.variables = genJetTable.variables  # Copy existing variables
+
+# Customize output name
+trackGenJetAK4Table.name = cms.string("trackGenJetAK4")  # Output name
+
+nanogenSequence += trackGenJetAK4Table
 
 def nanoGenCommonCustomize(process):
     process.rivetMetTable.extension = False
@@ -110,9 +111,12 @@ def customizeNanoGEN(process):
     process.load("RecoJets.JetProducers.ak8GenJets_cfi")
     process.ak8GenJetsNoNuConstituents =  process.ak8GenJetsConstituents.clone(src='ak8GenJetsNoNu')
     process.ak8GenJetsNoNuSoftDrop = process.ak8GenJetsSoftDrop.clone(src=cms.InputTag('ak8GenJetsNoNuConstituents', 'constituents'))
+    process.genSubJetAK8Table.src = "ak8GenJetsNoNuSoftDrop"
     process.genParticlesForJetsCharged = cms.EDFilter("CandPtrSelector", src = cms.InputTag("genParticles"), cut = cms.string("charge != 0 && pt > 0.3"))
     process.ak4GenJetsChargedOnly = ak4GenJets.clone(src = cms.InputTag("genParticlesForJetsCharged"), rParam = cms.double(0.4), jetAlgorithm=cms.string("AntiKt"), doAreaFastjet = False, jetPtMin=1)
-    process.genSubJetAK8Table.src = "ak8GenJetsNoNuSoftDrop"
+
+    process.nanogenSequence.insert(0, process.ak4GenJetsChargedOnly)
+    process.nanogenSequence.insert(0, process.genParticlesForJetsCharged)
     process.nanogenSequence.insert(0, process.ak8GenJetsNoNuSoftDrop)
     process.nanogenSequence.insert(0, process.ak8GenJetsNoNuConstituents)
     # In case customizeNanoGENFromMini has already been called
