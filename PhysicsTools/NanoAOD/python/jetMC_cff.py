@@ -2,8 +2,12 @@ import FWCore.ParameterSet.Config as cms
 
 from PhysicsTools.NanoAOD.common_cff import *
 from PhysicsTools.NanoAOD.simpleCandidateFlatTableProducer_cfi import simpleCandidateFlatTableProducer
+from PhysicsTools.NanoAOD.globalVariablesTableProducer_cfi import globalVariablesTableProducer
 from PhysicsTools.NanoAOD.jetsAK8_cff import fatJetTable as _fatJetTable
 from PhysicsTools.NanoAOD.jetsAK8_cff import subJetTable as _subJetTable
+
+from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
+
 
 jetMCTable = simpleCandidateFlatTableProducer.clone(
     src = cms.InputTag("linkedObjects","jets"),
@@ -116,7 +120,20 @@ subjetMCTable = simpleCandidateFlatTableProducer.clone(
     )
 )
 
+genParticlesForJetsCharged = cms.EDFilter("CandPtrSelector", 
+    src = cms.InputTag("prunedGenParticles"),  # or "packedGenParticles" if available
+    cut = cms.string("charge != 0 && pt > 0.3 && status == 1 && abs(pdgId) != 12 && abs(pdgId) != 14 && abs(pdgId) != 16")
+)
 
-jetMCTaskak4 = cms.Task(jetMCTable,genJetTable,patJetPartonsNano,genJetFlavourTable)
+ak4GenJetsChargedOnly = ak4GenJets.clone(src = cms.InputTag("genParticlesForJetsCharged"), rParam = cms.double(0.4), jetAlgorithm=cms.string("AntiKt"), doAreaFastjet = False, jetPtMin=1)
+
+trackGenJetAK4Table = genJetTable.clone(
+    src = cms.InputTag("ak4GenJetsChargedOnly"),
+    name = cms.string("TrackGenJetAK4"),
+    doc = cms.string("AK4 GenJets made with charged particles only"),
+    variables = genJetTable.variables
+)
+
+jetMCTaskak4 = cms.Task(jetMCTable,genJetTable,patJetPartonsNano,genJetFlavourTable,genParticlesForJetsCharged,ak4GenJetsChargedOnly,trackGenJetAK4Table)
 jetMCTaskak8 = cms.Task(genJetAK8Table,genJetAK8FlavourAssociation,genJetAK8FlavourTable,fatJetMCTable,genSubJetAK8Table,subjetMCTable)
 jetMCTask = jetMCTaskak4.copyAndAdd(jetMCTaskak8)
