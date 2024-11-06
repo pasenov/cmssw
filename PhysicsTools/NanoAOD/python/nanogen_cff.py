@@ -45,7 +45,8 @@ nanogenSequence = cms.Sequence(
 from PhysicsTools.NanoAOD.jetMC_cff import genJetTable
 trackGenJetAK4Table = genJetTable.clone()
 trackGenJetAK4Table.src = cms.InputTag("ak4GenJetsChargedOnly")
-trackGenJetAK4Table.variables = genJetTable.variables  # Copy existing variables
+trackGenJetAK4Table.cut = cms.string("pt > 1")
+trackGenJetAK4Table.variables = cms.PSet(P3Vars)
 
 # Customize output name
 trackGenJetAK4Table.name = cms.string("TrackGenJetAK4")  # Output name
