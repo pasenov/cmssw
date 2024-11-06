@@ -129,10 +129,10 @@ ak4GenJetsChargedOnly = ak4GenJets.clone(src = cms.InputTag("genParticlesForJets
 
 trackGenJetAK4Table = genJetTable.clone(
     src = cms.InputTag("ak4GenJetsChargedOnly"),
+    cut = cms.string("pt > 1"),
     name = cms.string("TrackGenJetAK4"),
     doc = cms.string("AK4 GenJets made with charged particles only"),
-    variables = genJetTable.variables
-)
+    variables = cms.PSet(P3Vars))
 
 jetMCTaskak4 = cms.Task(jetMCTable,genJetTable,patJetPartonsNano,genJetFlavourTable,genParticlesForJetsCharged,ak4GenJetsChargedOnly,trackGenJetAK4Table)
 jetMCTaskak8 = cms.Task(genJetAK8Table,genJetAK8FlavourAssociation,genJetAK8FlavourTable,fatJetMCTable,genSubJetAK8Table,subjetMCTable)
