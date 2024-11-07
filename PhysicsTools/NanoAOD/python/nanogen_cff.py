@@ -25,6 +25,9 @@ nanogenSequence = cms.Sequence(
     patJetPartonsNano+
     genJetFlavourAssociation+
     genJetFlavourTable+
+    genParticlesForJetsCharged+
+    ak4GenJetsChargedOnly+
+    trackGenJetAK4Table+
     genSubJetAK8Table+
     genJetAK8Table+
     genJetAK8FlavourAssociation+
@@ -40,18 +43,6 @@ nanogenSequence = cms.Sequence(
     metMCTable+
     genWeightsTable
 )
-
-# Define output table for charged-only GenJets
-from PhysicsTools.NanoAOD.jetMC_cff import genJetTable
-trackGenJetAK4Table = genJetTable.clone()
-trackGenJetAK4Table.src = cms.InputTag("ak4GenJetsChargedOnly")
-# trackGenJetAK4Table.cut = cms.string("pt > 1")
-# trackGenJetAK4Table.variables = cms.PSet(P3Vars)
-
-# Customize output name
-trackGenJetAK4Table.name = cms.string("TrackGenJetAK4")  # Output name
-
-nanogenSequence += trackGenJetAK4Table
 
 def nanoGenCommonCustomize(process):
     process.rivetMetTable.extension = False
