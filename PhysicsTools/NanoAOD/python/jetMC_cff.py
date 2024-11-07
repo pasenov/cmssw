@@ -2,14 +2,12 @@ import FWCore.ParameterSet.Config as cms
 
 from PhysicsTools.NanoAOD.common_cff import *
 from PhysicsTools.NanoAOD.simpleCandidateFlatTableProducer_cfi import simpleCandidateFlatTableProducer
-from PhysicsTools.NanoAOD.globalVariablesTableProducer_cfi import globalVariablesTableProducer
+from PhysicsTools.NanoAOD.simplePATJetFlatTableProducer_cfi import simplePATJetFlatTableProducer
 from PhysicsTools.NanoAOD.jetsAK8_cff import fatJetTable as _fatJetTable
 from PhysicsTools.NanoAOD.jetsAK8_cff import subJetTable as _subJetTable
-
 from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
 
-
-jetMCTable = simpleCandidateFlatTableProducer.clone(
+jetMCTable = simplePATJetFlatTableProducer.clone(
     src = cms.InputTag("linkedObjects","jets"),
     name = cms.string("Jet"),
     extension = cms.bool(True), # this is an extension  table for the jets
@@ -86,14 +84,12 @@ genJetAK8FlavourTable = cms.EDProducer("GenJetFlavourTableProducer",
     deltaR = cms.double(0.1),
     jetFlavourInfos = cms.InputTag("genJetAK8FlavourAssociation"),
 )
-fatJetMCTable = simpleCandidateFlatTableProducer.clone(
+fatJetMCTable = simplePATJetFlatTableProducer.clone(
     src = _fatJetTable.src,
     cut = _fatJetTable.cut,
     name = _fatJetTable.name,
     extension = cms.bool(True),
     variables = cms.PSet(
-        nBHadrons = Var("jetFlavourInfo().getbHadrons().size()", "uint8", doc="number of b-hadrons"),
-        nCHadrons = Var("jetFlavourInfo().getcHadrons().size()", "uint8", doc="number of c-hadrons"),
         hadronFlavour = Var("hadronFlavour()", "uint8", doc="flavour from hadron ghost clustering"),
         # cut should follow genJetAK8Table.cut
         genJetAK8Idx = Var("?genJetFwdRef().backRef().isNonnull() && genJetFwdRef().backRef().pt() > 100.?genJetFwdRef().backRef().key():-1", "int16", doc="index of matched gen AK8 jet"),
@@ -108,7 +104,7 @@ genSubJetAK8Table = simpleCandidateFlatTableProducer.clone(
 	#anything else?
     )
 )
-subjetMCTable = simpleCandidateFlatTableProducer.clone(
+subjetMCTable = simplePATJetFlatTableProducer.clone(
     src = _subJetTable.src,
     cut = _subJetTable.cut,
     name = _subJetTable.name,
@@ -117,10 +113,11 @@ subjetMCTable = simpleCandidateFlatTableProducer.clone(
         nBHadrons = Var("jetFlavourInfo().getbHadrons().size()", "uint8", doc="number of b-hadrons"),
         nCHadrons = Var("jetFlavourInfo().getcHadrons().size()", "uint8", doc="number of c-hadrons"),
         hadronFlavour = Var("hadronFlavour()", "uint8", doc="flavour from hadron ghost clustering"),
+        subGenJetAK8Idx = Var("?genJetFwdRef().backRef().isNonnull()?genJetFwdRef().backRef().key():-1", "int16", doc="index of matched gen subjet in SubGenJetAK8")
     )
 )
 
-genParticlesForJetsCharged = cms.EDFilter("CandPtrSelector", 
+genParticlesForJetsCharged = cms.EDFilter("CandPtrSelector",
     src = cms.InputTag("prunedGenParticles"),  # or "packedGenParticles" if available
     cut = cms.string("charge != 0 && pt > 0.3 && status == 1 && abs(pdgId) != 12 && abs(pdgId) != 14 && abs(pdgId) != 16")
 )
